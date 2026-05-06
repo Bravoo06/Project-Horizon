@@ -1,0 +1,32 @@
+.strip {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 32px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background-color: var(--swatch-color);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.swatch:active {
+  transform: scale(0.9);
+}
+
+/* Highlight the selected colour with a white ring and glow */
+.swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px var(--swatch-color), 0 0 10px var(--swatch-color);
+  transform: scale(1.15);
+}

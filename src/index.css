@@ -1,0 +1,47 @@
+/* ── Global reset ────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  /* Prevent bounce/overscroll on iOS */
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #000;
+}
+
+#root {
+  width: 100%;
+  height: 100dvh; /* dynamic viewport — accounts for mobile browser chrome */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Typography ──────────────────────────────────────────────────────────── */
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent text size adjustment when rotating on iOS */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Remove default button styling globally; components style their own buttons */
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}

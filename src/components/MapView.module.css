@@ -1,0 +1,35 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #111;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Banner shown when VITE_GOOGLE_MAPS_API_KEY is missing */
+.keyWarning {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  padding: 16px 20px;
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.9);
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  max-width: 280px;
+  backdrop-filter: blur(6px);
+}
+
+.keyWarning code {
+  background: rgba(255,255,255,0.2);
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}

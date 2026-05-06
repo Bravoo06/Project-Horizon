@@ -1,0 +1,64 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh; /* dynamic viewport height — correct on mobile browsers */
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+
+/* The view takes all remaining space between the counter bar and nav bar */
+.main {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0; /* prevent flex child from overflowing */
+}
+
+/* RewardCounter lives in a fixed-height strip above the nav */
+.counterWrapper {
+  flex-shrink: 0;
+}
+
+/* ── Bottom navigation ───────────────────────────────────────────────────── */
+.nav {
+  flex-shrink: 0;
+  display: flex;
+  background: rgba(10, 10, 10, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  /* Safe area inset for phones with a home indicator (iPhone / some Android) */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.navBtn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.navBtn.active {
+  color: #fff;
+}
+
+.navIcon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.navLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
