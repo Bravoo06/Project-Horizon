@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import useGeolocation from '../hooks/useGeolocation';
 import { distanceMetres, projectPoint } from '../utils/bearing';
+import VisitModal from './VisitModal';
 import styles from './MapView.module.css';
 
 // Google Maps API key must be set in .env as VITE_GOOGLE_MAPS_API_KEY
@@ -28,6 +29,7 @@ export default function MapView({ marks, onUpdateMarkPosition, onVisitMark }) {
   const promptedRef = useRef(new Set()); // ids already prompted this session
 
   const [mapsReady, setMapsReady] = useState(!!window.google?.maps);
+  const [pendingMark, setPendingMark] = useState(null);
   const { position } = useGeolocation();
 
   // ── Load Google Maps script once ─────────────────────────────────────────
@@ -205,27 +207,29 @@ export default function MapView({ marks, onUpdateMarkPosition, onVisitMark }) {
 
   // ── Geofence check ────────────────────────────────────────────────────────
   // When the user physically arrives within GEOFENCE_RADIUS_M of a mark,
-  // show a confirmation prompt.
+  // surface the in-app visit modal (one at a time).
   useEffect(() => {
-    if (!position) return;
-    marks.forEach((mark) => {
-      if (mark.visited || promptedRef.current.has(mark.id)) return;
+    if (!position || pendingMark) return;
+    for (const mark of marks) {
+      if (mark.visited || promptedRef.current.has(mark.id)) continue;
       const d = distanceMetres(position.lat, position.lng, mark.lat, mark.lng);
       if (d <= GEOFENCE_RADIUS_M) {
         promptedRef.current.add(mark.id);
-        // TODO: replace window.confirm with a custom in-app modal dialog
-        const confirmed = window.confirm(
-          `You're near a marked spot! Did you visit it?`
-        );
-        if (confirmed) {
-          onVisitMark(mark.id);
-        } else {
-          // Allow re-prompt on next position update if user says no
-          promptedRef.current.delete(mark.id);
-        }
+        setPendingMark(mark);
+        break;
       }
-    });
-  }, [position, marks, onVisitMark]);
+    }
+  }, [position, marks, pendingMark]);
+
+  const handleVisitConfirm = useCallback(() => {
+    if (pendingMark) onVisitMark(pendingMark.id);
+    setPendingMark(null);
+  }, [pendingMark, onVisitMark]);
+
+  const handleVisitDismiss = useCallback(() => {
+    if (pendingMark) promptedRef.current.delete(pendingMark.id);
+    setPendingMark(null);
+  }, [pendingMark]);
 
   return (
     <div className={styles.container}>
@@ -235,6 +239,11 @@ export default function MapView({ marks, onUpdateMarkPosition, onVisitMark }) {
         </div>
       )}
       <div ref={mapDivRef} className={styles.map} />
+      <VisitModal
+        mark={pendingMark}
+        onConfirm={handleVisitConfirm}
+        onDismiss={handleVisitDismiss}
+      />
     </div>
   );
 }

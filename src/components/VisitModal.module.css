@@ -1,0 +1,87 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.card {
+  background: rgba(18, 18, 18, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 30px 24px 24px;
+  max-width: 300px;
+  width: 88%;
+  text-align: center;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 12px 40px rgba(0, 0, 0, 0.7),
+    0 0 48px -12px var(--accent, #fff);
+}
+
+.icon {
+  font-size: 38px;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+
+.subtitle {
+  margin: 0 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.question {
+  margin: 0 0 24px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btnYes {
+  flex: 1;
+  padding: 13px 0;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent, #FF4136);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnYes:active {
+  opacity: 0.8;
+}
+
+.btnNo {
+  flex: 1;
+  padding: 13px 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnNo:active {
+  opacity: 0.7;
+}
