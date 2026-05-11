@@ -1,4 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+// Low-pass smoothing factor: 0 = frozen, 1 = no smoothing.
+// 0.15 removes jitter while still tracking fast rotation.
+const ALPHA = 0.15;
 
 // Reads compass bearing (0–360°, 0 = North, clockwise) from the device.
 //
@@ -14,9 +18,8 @@ export default function useCompass() {
   const [bearing, setBearing] = useState(null);
   const [error, setError] = useState(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const filteredRef = useRef(null);
 
-  // Call this from a user-gesture (tap/click) to satisfy iOS permission API.
-  // On Android it resolves immediately.
   const requestPermission = useCallback(async () => {
     if (typeof DeviceOrientationEvent?.requestPermission === 'function') {
       try {
@@ -30,7 +33,6 @@ export default function useCompass() {
         setError(e.message);
       }
     } else {
-      // Android / desktop – no explicit permission step needed
       setPermissionGranted(true);
     }
   }, []);
@@ -39,22 +41,29 @@ export default function useCompass() {
     if (!permissionGranted) return;
 
     const handleOrientation = (e) => {
-      let heading;
+      let raw;
       if (e.webkitCompassHeading != null) {
         // iOS: already an absolute bearing 0–360
-        heading = e.webkitCompassHeading;
+        raw = e.webkitCompassHeading;
       } else if (e.alpha != null) {
-        // Android `deviceorientationabsolute`: alpha is degrees from North,
-        // but the rotation is counter-clockwise, so we invert it.
-        heading = (360 - e.alpha) % 360;
+        // Android deviceorientationabsolute: counter-clockwise, so invert
+        raw = (360 - e.alpha) % 360;
       } else {
         return;
       }
-      setBearing(Math.round(heading));
+
+      // Circular low-pass filter — handles the 0/360 wrap correctly
+      if (filteredRef.current === null) {
+        filteredRef.current = raw;
+      } else {
+        let diff = raw - filteredRef.current;
+        if (diff > 180) diff -= 360;
+        if (diff < -180) diff += 360;
+        filteredRef.current = (filteredRef.current + ALPHA * diff + 360) % 360;
+      }
+      setBearing(Math.round(filteredRef.current));
     };
 
-    // Prefer `deviceorientationabsolute` (true North) on Android;
-    // fall back to `deviceorientation` for iOS (webkitCompassHeading covers it).
     const eventName =
       'ondeviceorientationabsolute' in window
         ? 'deviceorientationabsolute'

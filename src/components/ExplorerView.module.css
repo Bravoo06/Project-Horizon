@@ -1,0 +1,185 @@
+.container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #000;
+  padding: 0 0 24px;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 20px 16px;
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.appName {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #c8d8f0;
+}
+
+/* ── Stats row ───────────────────────────────────────────────────────────── */
+.stats {
+  display: flex;
+  gap: 0;
+  margin: 0 16px 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.stat:last-child {
+  border-right: none;
+}
+
+.fire {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Section ─────────────────────────────────────────────────────────────── */
+.section {
+  padding: 0 16px 8px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 10px;
+}
+
+.empty {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+  padding: 20px 0;
+  font-style: italic;
+}
+
+/* ── Mark card ───────────────────────────────────────────────────────────── */
+.card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px;
+  margin-bottom: 8px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cardVisited {
+  opacity: 0.55;
+}
+
+.emoji {
+  font-size: 26px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cardInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.coords {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Card action buttons ─────────────────────────────────────────────────── */
+.cardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btnDirections {
+  display: block;
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: rgba(30, 80, 200, 0.35);
+  border: 1px solid rgba(80, 140, 255, 0.3);
+  color: #7aaeff;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnDirections:active {
+  opacity: 0.7;
+}
+
+.btnDelete {
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: rgba(200, 40, 40, 0.2);
+  border: 1px solid rgba(220, 80, 80, 0.25);
+  color: #ff7070;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnDelete:active {
+  opacity: 0.7;
+}

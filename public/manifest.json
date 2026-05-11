@@ -1,13 +1,19 @@
 {
-  "name": "Project Horizon",
-  "short_name": "Horizon",
+  "name": "Horizons",
+  "short_name": "Horizons",
   "description": "Mark distant places with coloured beams — then go find them.",
   "start_url": "/",
   "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "#000000",
-  "theme_color": "#000000",
+  "theme_color": "#0d1b2e",
   "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",

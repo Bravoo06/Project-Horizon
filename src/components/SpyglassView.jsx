@@ -7,8 +7,8 @@ import styles from './SpyglassView.module.css';
 
 // A beam appears when the user is pointing within ±TOLERANCE degrees of a mark.
 const TOLERANCE_DEG = 15;
-const BEAM_WIDTH_PX = 5;
-const BEAM_GLOW_PX = 18;
+const BEAM_WIDTH_PX = 12;
+const BEAM_GLOW_PX = 22;
 
 // ─────────────────────────────────────────────
 // SpyglassView
@@ -16,10 +16,11 @@ const BEAM_GLOW_PX = 18;
 // Props:
 //   marks          – array from useMarks
 //   selectedColor  – hex string for new marks
+//   usedColors     – Set of hex strings already in use
 //   onColorChange  – (color: string) => void
 //   onAddMark      – ({ originLat, originLng, bearing, color }) => void
 // ─────────────────────────────────────────────
-export default function SpyglassView({ marks, selectedColor, onColorChange, onAddMark }) {
+export default function SpyglassView({ marks, selectedColor, usedColors, onColorChange, onAddMark }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
@@ -63,8 +64,7 @@ export default function SpyglassView({ marks, selectedColor, onColorChange, onAd
     return () => video.removeEventListener('loadedmetadata', syncSize);
   }, []);
 
-  // ── Beam render loop ───────────────────────────────────────────────────────
-  // Runs every animation frame; draws a glowing vertical line for each visible mark.
+  // ── Beam + orb render loop ─────────────────────────────────────────────────
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -79,31 +79,68 @@ export default function SpyglassView({ marks, selectedColor, onColorChange, onAd
         const markBearing = bearingTo(position.lat, position.lng, mark.lat, mark.lng);
         const diff = bearingDiff(bearing, markBearing);
 
-        // Only render if the mark is within the visible cone.
         if (Math.abs(diff) > TOLERANCE_DEG) return;
 
-        // Map angular offset linearly to an x-coordinate on the canvas.
-        // diff == 0  →  canvas center,  ±TOLERANCE_DEG  →  screen edges
+        // Map angular offset to screen x. diff=0 → centre, ±TOLERANCE_DEG → edges.
         const xFrac = 0.5 + diff / (TOLERANCE_DEG * 2);
         const x = xFrac * canvas.width;
+        const h = canvas.height;
 
-        // Vertical gradient: fades at top and bottom for a floating-beam look.
-        const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        grad.addColorStop(0, mark.color + '00');
+        // ── Beam ──────────────────────────────────────────────────────────
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0,   mark.color + '00');
         grad.addColorStop(0.1, mark.color);
         grad.addColorStop(0.9, mark.color);
-        grad.addColorStop(1, mark.color + '00');
+        grad.addColorStop(1,   mark.color + '00');
 
         ctx.save();
-        ctx.globalAlpha = 0.88;
+        ctx.globalAlpha = 0.7;
         ctx.shadowColor = mark.color;
         ctx.shadowBlur = BEAM_GLOW_PX;
         ctx.strokeStyle = grad;
         ctx.lineWidth = BEAM_WIDTH_PX;
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, h);
         ctx.stroke();
+        ctx.restore();
+
+        // ── Orb at beam base ───────────────────────────────────────────────
+        const orbY = h - 14;
+
+        // Outer halo
+        const haloGrad = ctx.createRadialGradient(x, orbY, 0, x, orbY, 36);
+        haloGrad.addColorStop(0,   mark.color + 'aa');
+        haloGrad.addColorStop(0.5, mark.color + '44');
+        haloGrad.addColorStop(1,   mark.color + '00');
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(x, orbY, 36, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Core — bright centre, fades to mark colour
+        const coreGrad = ctx.createRadialGradient(x - 3, orbY - 4, 0, x, orbY, 14);
+        coreGrad.addColorStop(0,    '#ffffff');
+        coreGrad.addColorStop(0.28, mark.color);
+        coreGrad.addColorStop(1,    mark.color + '00');
+        ctx.save();
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = coreGrad;
+        ctx.beginPath();
+        ctx.arc(x, orbY, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Specular highlight — small white circle offset up-left
+        ctx.save();
+        ctx.globalAlpha = 0.88;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x - 4, orbY - 5, 3.5, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
       });
     }
@@ -165,14 +202,17 @@ export default function SpyglassView({ marks, selectedColor, onColorChange, onAd
 
       {/* ── Color picker ─────────────────────────────────────────────────── */}
       <div className={styles.pickerWrapper}>
-        <MarkColorPicker selectedColor={selectedColor} onColorChange={onColorChange} />
+        <MarkColorPicker
+          selectedColor={selectedColor}
+          onColorChange={onColorChange}
+          usedColors={usedColors}
+        />
       </div>
     </div>
   );
 }
 
 // ── Compass tick strip ──────────────────────────────────────────────────────
-// Renders 9 cardinal/degree labels centred on the current bearing.
 function CompassTicks({ bearing }) {
   if (bearing === null) return null;
 
@@ -193,7 +233,6 @@ function CompassTicks({ bearing }) {
   return <div className={styles.ticks}>{ticks}</div>;
 }
 
-// Returns a cardinal letter at 0/90/180/270 multiples, otherwise the degree string.
 function snapToCardinal(deg) {
   const map = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW', 360: 'N' };
   const snapped = Math.round(deg / 10) * 10;

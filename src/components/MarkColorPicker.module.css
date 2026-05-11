@@ -30,3 +30,9 @@
   box-shadow: 0 0 0 3px var(--swatch-color), 0 0 10px var(--swatch-color);
   transform: scale(1.15);
 }
+
+/* Colour slot already occupied — dim and show a cross */
+.swatch.inUse {
+  opacity: 0.35;
+  border-color: rgba(255, 255, 255, 0.15);
+}

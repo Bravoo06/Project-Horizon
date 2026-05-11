@@ -192,6 +192,15 @@ export default function MapView({ marks, onUpdateMarkPosition, onVisitMark }) {
           onUpdateMarkPosition(mark.id, pos.lat(), pos.lng());
         });
 
+        // Tap / click: open Google Maps with directions to this pin
+        marker.addListener('click', () => {
+          const pos = marker.getPosition();
+          window.open(
+            `https://www.google.com/maps/dir/?api=1&destination=${pos.lat()},${pos.lng()}`,
+            '_blank',
+          );
+        });
+
         markersRef.current[mark.id] = { marker, circle, projLine };
       } else {
         // Update existing marker/circle positions

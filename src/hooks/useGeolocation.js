@@ -24,7 +24,7 @@ export default function useGeolocation() {
       (err) => setError(err.message),
       {
         enableHighAccuracy: true,
-        maximumAge: 1000,
+        maximumAge: 0,
         timeout: 10000,
       }
     );
