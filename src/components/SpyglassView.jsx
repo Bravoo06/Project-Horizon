@@ -2,13 +2,42 @@ import { useRef, useEffect, useCallback } from 'react';
 import useGeolocation from '../hooks/useGeolocation';
 import useCompass from '../hooks/useCompass';
 import MarkColorPicker from './MarkColorPicker';
-import { bearingTo, bearingDiff, bearingToCardinal } from '../utils/bearing';
+import { bearingTo, bearingDiff, bearingToCardinal, distanceMetres } from '../utils/bearing';
 import styles from './SpyglassView.module.css';
 
-// A beam appears when the user is pointing within ±TOLERANCE degrees of a mark.
-const TOLERANCE_DEG = 15;
-const BEAM_WIDTH_PX = 12;
-const BEAM_GLOW_PX = 22;
+// Beam is only rendered when the user points within ±TOLERANCE degrees.
+const TOLERANCE_DEG = 25;
+
+// Distance zones (metres)
+const MAX_VISIBLE_M = 5000;  // beyond this: invisible
+const NEAR_ZONE_M   = 500;   // below this: progressive brightness ramp
+
+// ── Distance → visual properties ────────────────────────────────────────────
+// Returns null when the mark is beyond MAX_VISIBLE_M.
+// Two-segment linear interpolation:
+//   Far  (500m–5km): width 2→4 px,  opacity 0.2→0.35, orb 4→7 px
+//   Near (0–500m):   width 4→12 px, opacity 0.35→0.9,  orb 7→18 px
+function computeBeamProps(distM) {
+  if (distM >= MAX_VISIBLE_M) return null;
+
+  let width, opacity, orbRadius;
+
+  if (distM >= NEAR_ZONE_M) {
+    const t = 1 - (distM - NEAR_ZONE_M) / (MAX_VISIBLE_M - NEAR_ZONE_M);
+    width     = lerp(2,  4,  t);
+    opacity   = lerp(0.2, 0.35, t);
+    orbRadius = lerp(4,  7,  t);
+  } else {
+    const t = 1 - distM / NEAR_ZONE_M;
+    width     = lerp(4,  12, t);
+    opacity   = lerp(0.35, 0.9, t);
+    orbRadius = lerp(7,  18, t);
+  }
+
+  return { width, opacity, orbRadius, haloRadius: orbRadius * 2.5 };
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
 
 // ─────────────────────────────────────────────
 // SpyglassView
@@ -75,13 +104,18 @@ export default function SpyglassView({ marks, selectedColor, usedColors, onColor
       marks.forEach((mark) => {
         if (mark.visited) return;
 
-        // Bearing from the user's current position toward the mark's pinned location.
+        // Distance gate — skip marks that are too far away
+        const dist = distanceMetres(position.lat, position.lng, mark.lat, mark.lng);
+        const props = computeBeamProps(dist);
+        if (!props) return;
+
+        // Bearing gate — only render when user is facing within ±TOLERANCE_DEG
         const markBearing = bearingTo(position.lat, position.lng, mark.lat, mark.lng);
         const diff = bearingDiff(bearing, markBearing);
-
         if (Math.abs(diff) > TOLERANCE_DEG) return;
 
-        // Map angular offset to screen x. diff=0 → centre, ±TOLERANCE_DEG → edges.
+        // Map angular offset to horizontal screen position.
+        // diff=0 → canvas centre, ±TOLERANCE_DEG → screen edges.
         const xFrac = 0.5 + diff / (TOLERANCE_DEG * 2);
         const x = xFrac * canvas.width;
         const h = canvas.height;
@@ -94,11 +128,11 @@ export default function SpyglassView({ marks, selectedColor, usedColors, onColor
         grad.addColorStop(1,   mark.color + '00');
 
         ctx.save();
-        ctx.globalAlpha = 0.7;
+        ctx.globalAlpha = props.opacity;
         ctx.shadowColor = mark.color;
-        ctx.shadowBlur = BEAM_GLOW_PX;
+        ctx.shadowBlur  = props.width * 2;
         ctx.strokeStyle = grad;
-        ctx.lineWidth = BEAM_WIDTH_PX;
+        ctx.lineWidth   = props.width;
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, h);
@@ -106,23 +140,27 @@ export default function SpyglassView({ marks, selectedColor, usedColors, onColor
         ctx.restore();
 
         // ── Orb at beam base ───────────────────────────────────────────────
-        const orbY = h - 14;
+        const { orbRadius, haloRadius } = props;
+        const orbY = h - orbRadius - 6;
 
         // Outer halo
-        const haloGrad = ctx.createRadialGradient(x, orbY, 0, x, orbY, 36);
+        const haloGrad = ctx.createRadialGradient(x, orbY, 0, x, orbY, haloRadius);
         haloGrad.addColorStop(0,   mark.color + 'aa');
         haloGrad.addColorStop(0.5, mark.color + '44');
         haloGrad.addColorStop(1,   mark.color + '00');
         ctx.save();
-        ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = props.opacity * 0.6;
         ctx.fillStyle = haloGrad;
         ctx.beginPath();
-        ctx.arc(x, orbY, 36, 0, Math.PI * 2);
+        ctx.arc(x, orbY, haloRadius, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // Core — bright centre, fades to mark colour
-        const coreGrad = ctx.createRadialGradient(x - 3, orbY - 4, 0, x, orbY, 14);
+        // Solid core
+        const coreGrad = ctx.createRadialGradient(
+          x - orbRadius * 0.25, orbY - orbRadius * 0.3, 0,
+          x, orbY, orbRadius,
+        );
         coreGrad.addColorStop(0,    '#ffffff');
         coreGrad.addColorStop(0.28, mark.color);
         coreGrad.addColorStop(1,    mark.color + '00');
@@ -130,18 +168,25 @@ export default function SpyglassView({ marks, selectedColor, usedColors, onColor
         ctx.globalAlpha = 0.95;
         ctx.fillStyle = coreGrad;
         ctx.beginPath();
-        ctx.arc(x, orbY, 14, 0, Math.PI * 2);
+        ctx.arc(x, orbY, orbRadius, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
-        // Specular highlight — small white circle offset up-left
-        ctx.save();
-        ctx.globalAlpha = 0.88;
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(x - 4, orbY - 5, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+        // Specular highlight — only shown when orb is large enough to be visible
+        if (orbRadius > 6) {
+          ctx.save();
+          ctx.globalAlpha = 0.88;
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(
+            x - orbRadius * 0.28,
+            orbY - orbRadius * 0.35,
+            orbRadius * 0.25,
+            0, Math.PI * 2,
+          );
+          ctx.fill();
+          ctx.restore();
+        }
       });
     }
 

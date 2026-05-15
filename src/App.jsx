@@ -11,7 +11,7 @@ const VIEWS = { SPYGLASS: 'spyglass', MAP: 'map', EXPLORER: 'explorer' };
 
 export default function App() {
   const [activeView, setActiveView] = useState(VIEWS.SPYGLASS);
-  const [selectedColor, setSelectedColor] = useState('#FF4136');
+  const [selectedColor, setSelectedColor] = useState('#E53935');
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
 
