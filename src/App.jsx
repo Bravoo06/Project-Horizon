@@ -15,7 +15,7 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
 
-  const { marks, addMark, updateMarkPosition, visitMark, deleteMark } = useMarks();
+  const { marks, addMark, updateMarkPosition, visitMark, deleteMark, setMarkOcclusion } = useMarks();
 
   // Set of hex colours that already have an active (unvisited) mark
   const usedColors = new Set(marks.filter((m) => !m.visited).map((m) => m.color));
@@ -54,6 +54,7 @@ export default function App() {
             marks={marks}
             onUpdateMarkPosition={updateMarkPosition}
             onVisitMark={visitMark}
+            onSetMarkOcclusion={setMarkOcclusion}
           />
         )}
         {activeView === VIEWS.EXPLORER && (

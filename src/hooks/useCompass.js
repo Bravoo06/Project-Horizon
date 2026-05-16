@@ -1,21 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-// Low-pass smoothing factor: 0 = frozen, 1 = no smoothing.
-// 0.15 removes jitter while still tracking fast rotation.
 const ALPHA = 0.15;
 
-// Reads compass bearing (0–360°, 0 = North, clockwise) from the device.
-//
-// Android Chrome: fires `deviceorientationabsolute` which gives true-North alpha.
-// iOS 13+: fires `deviceorientation` with webkitCompassHeading; requires
-//   requestPermission() to be called from a user-gesture handler.
+// Reads compass bearing + device pitch (beta) from DeviceOrientation events.
 //
 // Returns:
-//   bearing          – current heading in degrees, or null before first reading
+//   bearing          – heading 0–360° (0 = North, clockwise), or null
+//   beta             – raw device pitch in degrees (0 = flat, 90 = upright), or null
 //   error            – string if permission denied or unsupported
-//   requestPermission – call this on a button tap (required on iOS 13+)
+//   requestPermission – call from a user-gesture (required on iOS 13+)
 export default function useCompass() {
   const [bearing, setBearing] = useState(null);
+  const [beta, setBeta] = useState(null);
   const [error, setError] = useState(null);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const filteredRef = useRef(null);
@@ -41,18 +37,16 @@ export default function useCompass() {
     if (!permissionGranted) return;
 
     const handleOrientation = (e) => {
+      // ── Bearing (horizontal heading) ─────────────────────────────────────
       let raw;
       if (e.webkitCompassHeading != null) {
-        // iOS: already an absolute bearing 0–360
         raw = e.webkitCompassHeading;
       } else if (e.alpha != null) {
-        // Android deviceorientationabsolute: counter-clockwise, so invert
         raw = (360 - e.alpha) % 360;
       } else {
         return;
       }
 
-      // Circular low-pass filter — handles the 0/360 wrap correctly
       if (filteredRef.current === null) {
         filteredRef.current = raw;
       } else {
@@ -62,6 +56,9 @@ export default function useCompass() {
         filteredRef.current = (filteredRef.current + ALPHA * diff + 360) % 360;
       }
       setBearing(Math.round(filteredRef.current));
+
+      // ── Pitch (beta) — no filtering needed for smooth AR positioning ──────
+      if (e.beta != null) setBeta(e.beta);
     };
 
     const eventName =
@@ -73,5 +70,5 @@ export default function useCompass() {
     return () => window.removeEventListener(eventName, handleOrientation, true);
   }, [permissionGranted]);
 
-  return { bearing, error, requestPermission };
+  return { bearing, beta, error, requestPermission };
 }

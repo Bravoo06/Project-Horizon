@@ -33,3 +33,90 @@
   border-radius: 4px;
   font-size: 12px;
 }
+
+/* ── Pin placement confirmation card ─────────────────────────────────────── */
+.confirmCard {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  width: min(320px, 90vw);
+  background: rgba(14, 14, 14, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 18px 18px 14px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+}
+
+.confirmTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 4px;
+  text-align: center;
+}
+
+.confirmCoords {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0 0 14px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnConfirm {
+  flex: 1.4;
+  padding: 11px 0;
+  border-radius: 10px;
+  background: var(--accent, #1E88E5);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnConfirm:active { opacity: 0.75; }
+
+.btnStreetView {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #7aaeff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnStreetView:active { opacity: 0.7; }
+
+.btnCancel {
+  flex: 0.7;
+  padding: 11px 0;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnCancel:active { opacity: 0.7; }
